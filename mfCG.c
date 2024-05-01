@@ -47,6 +47,13 @@ void vec_print(int N, double vec[], char name[]){
 
 
 int main(int argc, char** argv){
+    int preconditioner=0;
+    int number_of_iterations = 0;
+    // if you want to use a precondtioner first argument 1
+    if (argc>1){
+        preconditioner=atoi(argv[1]);
+    }
+    printf("%d \n",preconditioner);
     // initilize variables
     int N = 6; // N^2 is the number of inner points in our lattice
     int N2 = (N+2)*(N+2);
@@ -77,7 +84,7 @@ int main(int argc, char** argv){
     // inner points of x_0,b
     for (int i = 1;i<N+1;i++) {
         for (int j = 1;j<N+1;j++){
-            x[(N+2)*i+j]=1;
+            x[(N+2)*i+j]=0;
             b[(N+2)*i+j]=fun(i*h,j*h);
         }
 
@@ -92,10 +99,12 @@ int main(int argc, char** argv){
     }
     err0 = sqrt(dot(r,r,N2));
     double old_r_dot, new_r_dot;
-    double old_r_dot = err0;
+    old_r_dot = err0;
 
     do
     {
+        number_of_iterations+=1;
+
         mfMult(N,p,m,h);
         alpha=old_r_dot/dot(p,m,N2);
 
@@ -117,6 +126,7 @@ int main(int argc, char** argv){
     } while (sqrt(new_r_dot)/err0 >= epsilon);
 
     vec_print(N,x,"vector x");
+    printf("Number of iterations: %d\n",number_of_iterations);
 
 
     // free allocated memory
