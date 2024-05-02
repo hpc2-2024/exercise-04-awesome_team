@@ -2,11 +2,37 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
+#include <stdbool.h>
 #include <string.h>
 
 /*! The function f of the exercise sheet*/
 double fun(double x, double y){
     return sin(y*M_PI)*sin(x*M_PI)*2.0*M_PI*M_PI;
+}
+
+// axpy calculations with scalar y
+void axpy_scalar_y(double solution[], double a, double x[], double y, int N) {
+    #pragma omp parallel for
+    for (int i = 0; i < N; i++) {
+        solution[i] = a * x[i] + ((y == 0) ? 0 : y);
+    }
+}
+
+// axpy calculations with vector y
+void axpy_vector_y(double solution[], double a, double x[], double y[], int N) {
+    #pragma omp parallel for
+    for (int i = 0; i < N; i++) {
+        solution[i] = a * x[i] + y[i];
+    }
+}
+
+// overloaded axpy function
+void axpy(double solution[], double a, double x[], double y[], int N) {
+    if (y == NULL) { // If y is NULL, treat it as a scalar
+        axpy_scalar_y(solution, a, x, 0, N);
+    } else { // Otherwise, treat y as a vector
+        axpy_vector_y(solution, a, x, y, N);
+    }
 }
 
 /*! Calculating the dot (scalar) product of 2 vectors */
@@ -63,8 +89,9 @@ int main(int argc, char** argv){
     double alpha = 0;
     double beta=0;
     double err0;
-    double *x,*p,*r,*b,*m;
+    double *x,*p,*r,*b,*m, *z;
     x=(double *)malloc((N+2)*(N+2)*sizeof(double));
+    z=(double *)malloc((N+2)*(N+2)*sizeof(double));
     p=(double *)malloc((N+2)*(N+2)*sizeof(double));
     r=(double *)malloc((N+2)*(N+2)*sizeof(double));
     b=(double *)malloc((N+2)*(N+2)*sizeof(double));
@@ -90,11 +117,12 @@ int main(int argc, char** argv){
 
     }
 
-    // Calculate r_0
+    // Pre loop calculations ( calculating residuum )
     mfMult(N,x,r,h);
+    axpy(r,-1,b,r,(N+2)*(N+2));
+    axpy(p,-1,r,0,(N+2)*(N+2));
     #pragma omp parallel for
     for (int i=0;i<(N+2)*(N+2);i++){
-        r[i]-=b[i];
         p[i]=r[i]*(-1);
     }
     err0 = sqrt(dot(r,r,N2));
@@ -135,5 +163,6 @@ int main(int argc, char** argv){
     free(r);
     free(b);
     free(m);
+    free(z);
     return 0;
 }
