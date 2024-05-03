@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
+#include "utils.h"
 #include "axpby.h"
 
 /*! The function f of the exercise sheet*/
@@ -11,18 +12,7 @@ double fun(double x, double y){
     return sin(y*M_PI)*sin(x*M_PI)*2.0*M_PI*M_PI;
 }
 
-/*! Calculating the dot (scalar) product of 2 vectors */
-double dot(double v[], double w[], int size) {
-    double sum = 0;
-    int i;
 
-    #pragma omp parallel for private(i) reduction(+:sum) 
-    for (i=0;i<size;i++){
-        sum += v[i]*w[i];
-    } 
-
-    return sum;
-}
 
 /*! Implementation of a matrix free multiplication with 5-star stencil*/
 void mfMult(int N, double r[], double y[], double h){
@@ -34,17 +24,7 @@ void mfMult(int N, double r[], double y[], double h){
     }
 }
 
-/*! Displaying a vector */
-void vec_print(int N, double vec[], char name[]){
-    printf("\n %s \n",name);
-    for (int i=0;i<N+2;i++){
-        for (int j=0;j<N+2;j++){
-            printf("%f ",vec[(N+2)*i+j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
+
 
 
 
