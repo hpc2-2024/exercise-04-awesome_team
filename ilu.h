@@ -52,3 +52,45 @@ void ilu(double l[][2],double u[], int N,double epsilon,int max_it){
 
     }
 }
+
+void forward_solve(double a[][5],double y[], double b[],int N){
+    for (int i=0;i<N*N;i++){
+        if (i==0){
+            y[i]=b[i];
+        }
+        else {
+            if (i-N>=0){
+                y[i]=b[i]-y[i-N]*a[i][0]-a[i][1]*y[i-1];
+            }
+            else {
+                y[i]=b[i]-y[i-1]*a[i][1];
+            }
+        }
+    }
+}
+
+void backward_solve(double a[][5],double x[],double y[],int N){
+    for (int i=N*N-1;i>=0;i--){
+        if (i==N*N-1){
+            x[i]=y[i]/a[i][2];
+        }
+        else {
+            if (i+N<=N*N-1){
+                x[i]=(y[i]-a[i][3]*x[i+1]-a[i][4]*x[i+N])/a[i][2];
+            }
+            else {
+                x[i]=(y[i]-a[i][3]*x[i+1])/a[i][2];
+            }
+        }
+    }
+
+}
+
+void precondition_ilu(double x[],double a[][5],double y[],double b[],int N){
+    // forward solve
+    forward_solve(a,y,b,N);
+    
+    //backward solve
+    backward_solve(a,y,b,N);
+
+}
