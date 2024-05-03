@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 #include <stdio.h>
 #include <stdbool.h>
 #include "axpby.h"
@@ -49,4 +50,22 @@ void test_axpby(){
 
 int main(int argc, char **argv){
     test_axpby();    
+=======
+#include <stdlib.h>
+#include <stdio.h>
+#include "mysum.h"
+
+int main(int argc,char **argv){
+    printf("test\n");
+
+    int x[] = {1,2,3};
+    int *y;
+
+    y=x;
+    x[0]=10;
+
+    printf("%d",mysum(2,2));
+    
+
+>>>>>>> Stashed changes
 }

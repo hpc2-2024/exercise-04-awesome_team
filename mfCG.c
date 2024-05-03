@@ -55,7 +55,7 @@ int main(int argc, char** argv){
     if (argc>1){
         preconditioner=atoi(argv[1]);
     }
-    printf("%d \n",preconditioner);
+    printf("Preconditioner: %d \n",preconditioner);
     // initilize variables
     int N = 6; // N^2 is the number of inner points in our lattice
     int N2 = (N+2)*(N+2);
@@ -64,7 +64,7 @@ int main(int argc, char** argv){
     // init x0
     double alpha = 0;
     double beta=0;
-    double err0;
+    double err0, errk;
     double *x,*p,*r,*b,*m, *z;
     x=(double *)malloc((N+2)*(N+2)*sizeof(double));
     z=(double *)malloc((N+2)*(N+2)*sizeof(double));
@@ -94,30 +94,37 @@ int main(int argc, char** argv){
     }
 
     // Pre loop calculations ( calculating residuum )
-    mfMult(N,x,r,h);
-    axpy(r,-1,b,r,(N+2)*(N+2));
-    axpy(p,-1,r,0,(N+2)*(N+2));
-    #pragma omp parallel for
-    for (int i=0;i<(N+2)*(N+2);i++){
-        p[i]=r[i]*(-1);
+    mfMult(N,x,r,h); // r = Ax
+    axpy(r,-1,b,r,(N+2)*(N+2)); // r = Ax -b (together with last line)
+    if (preconditioner == 1) {
+        //precondition z = M^-1r
+        z=r;
     }
-    err0 = sqrt(dot(r,r,N2));
+    else {
+        z = r; // no preconditioning of the residuum
+    }
+    axpy(p,-1,z,0,(N+2)*(N+2)); // p = -r (first conjugated gradient direction)
+
+    err0 = sqrt(dot(z,z,N2)); // for break condition
+
     double old_r_dot, new_r_dot;
-    old_r_dot = err0;
+    old_r_dot = dot(r,z,N2); // dot product for loop
 
     do
     {
         number_of_iterations+=1;
 
-        mfMult(N,p,m,h);
-        alpha=old_r_dot/dot(p,m,N2);
+        mfMult(N,p,m,h); // Ap
+        alpha=old_r_dot/dot(p,m,N2); // rz/pAp
 
         // update x,r
-        #pragma omp parallel for
-        for (int i=0;i<(N+2)*(N+2);i++){
-            x[i]+=alpha*p[i];
-            r[i]+=alpha*m[i];
+        axpy(x,alpha,p,x,N2); //x = x + alpha*p
+        axpy(r,alpha,m,r,N2); // r=r + alpha*Ap
+
+        if (preconditioner==1) {
+            // precondition r: z = Mr
         }
+
         //update p
         new_r_dot = dot(r,r,N2);
         beta = new_r_dot/old_r_dot;
@@ -125,7 +132,15 @@ int main(int argc, char** argv){
 
         old_r_dot = new_r_dot;
 
-    } while (sqrt(new_r_dot)/err0 >= epsilon);
+        //break criteria
+        if (preconditioner==0){
+            errk=sqrt(new_r_dot);
+        }
+        else {
+            errk=sqrt(dot(z,z,N2));
+        }
+
+    } while (errk/err0 >= epsilon);
 
     vec_print(N,x,"vector x");
     printf("Number of iterations: %d\n",number_of_iterations);
@@ -137,6 +152,8 @@ int main(int argc, char** argv){
     free(r);
     free(b);
     free(m);
-    free(z);
+    if (preconditioner==1){
+        free(z);
+    }
     return 0;
 }
