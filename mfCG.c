@@ -12,8 +12,6 @@ double fun(double x, double y){
     return sin(y*M_PI)*sin(x*M_PI)*2.0*M_PI*M_PI;
 }
 
-
-
 /*! Implementation of a matrix free multiplication with 5-star stencil*/
 void mfMult(int N, double r[], double y[], double h){
     for (int i=1;i<N+1;i++){
@@ -24,9 +22,12 @@ void mfMult(int N, double r[], double y[], double h){
     }
 }
 
+void precondition_ilu(double x[],double a[][5],int N){
+    // forward solve
+    
+    //backward solve
 
-
-
+}
 
 int main(int argc, char** argv){
     int preconditioner=0;
@@ -52,7 +53,11 @@ int main(int argc, char** argv){
     r=(double *)malloc((N+2)*(N+2)*sizeof(double));
     b=(double *)malloc((N+2)*(N+2)*sizeof(double));
     m=(double *)malloc((N+2)*(N+2)*sizeof(double));
-   
+    
+    // Creation of matrix a
+    double a[5][N*N];
+    lapl_matrix(a,N);
+
     // fill ghost layer with zeros (and everything else also 0)
     for (int i = 0;i<N+2;i++) {
         for (int j = 0;j<N+2;j++){

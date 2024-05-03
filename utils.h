@@ -13,7 +13,7 @@ double dot(double v[], double w[], int size) {
     return sum;
 }
 
-/*! Displaying a vector */
+/*! Displaying a vector with ghostlayer*/
 void vec_print(int N, double vec[], char name[]){
     printf("\n %s \n",name);
     for (int i=0;i<N+2;i++){
@@ -23,4 +23,21 @@ void vec_print(int N, double vec[], char name[]){
         printf("\n");
     }
     printf("\n");
+}
+
+void print_1dim(int N, double vec[],char name[]){
+    printf("\n %s \n",name);
+    for (int i=0;i<N;i++){
+        printf("%f\n",vec[i]);
+    }
+}
+
+void print_2dim(int N, double vec[][5],char name[]){
+    printf("\n %s \n",name);
+        for (int i=0;i<N*N;i++){
+            for (int j=0;j<5;j++){
+                printf("%f ",vec[i][j]);
+        }
+        printf("\n");
+    }
 }

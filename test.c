@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "axpby.h"
+#include "ilu.h"
+#include "utils.h"
 
 void test_axpby(){
     double x[] = {0,0,0};
@@ -47,6 +49,45 @@ void test_axpby(){
 
 }
 
+void test_ilu(){
+    //
+    int N = 4;
+    double l[16][2] = {{0,0},{0,-1},{0,-1},{0,-1},{-1,0},{-1,-1},{-1,-1},{-1,-1},{-1,0},{-1,-1},{-1,-1},{-1,-1},{-1,0},{-1,-1},{-1,-1},{-1,-1}};
+    double u[16] = {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4};
+
+    ilu(l,u,N,0,2);
+
+    print_1dim(N*N,u,"u diagonal:");
+}
+
+void test_lapl(){
+    int N=3;
+    double a[9][5];
+
+    lapl_matrix(a,N);
+
+    double exp_matrix[9][5]={{0,0,4,-1,-1},{0,-1,4,-1,-1},{0,-1,4,0,-1},{-1,0,4,-1,-1},
+        {-1,-1,4,-1,-1},{-1,-1,4,0,-1},{-1,0,4,-1,-0},{-1,-1,4,-1,0},{-1,-1,4,0,0}};
+    
+    bool fail = false;
+    for (int i=0;i<5;i++){
+        for (int j=0;j<N*N;j++){
+            if (a[j][i]!=exp_matrix[j][i]){
+                fail=true;
+            }
+        }
+    }
+    if (fail==true){
+        printf("Test: Creation of lapl matrix has failed.\n");
+    }
+    else {
+        printf("Test: Creation of lapl matrix has succeded.\n");
+    }
+    
+}
+
 int main(int argc, char **argv){
-    test_axpby();    
+    //test_axpby();    
+    //test_ilu();
+    test_lapl();
 }
