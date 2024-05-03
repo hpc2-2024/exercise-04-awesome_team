@@ -91,14 +91,18 @@ void test_fwbw_solve(){
     double a[9][5];
     lapl_matrix(a,N);
 
-    double x[9];
-    double y[9];
-    double b[9] = {1,1,1,0,0,0,1,1,1};
+    double x[25];
+    double y[25];
+    double b[25] = {0,0,0,0,0,
+                    0,1,1,1,0,
+                    0,0,0,0,0,
+                    0,1,1,1,0,
+                    0,0,0,0,0};
 
     forward_solve(a,y,b,N);
     backward_solve(a,x,y,N);
 
-    print_1dim(N*N,x,"x_fwbw solved");
+    vec_print(3,x,"x_fwbw solved");
 
 
 }
