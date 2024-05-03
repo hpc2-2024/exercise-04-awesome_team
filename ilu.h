@@ -86,11 +86,11 @@ void backward_solve(double a[][5],double x[],double y[],int N){
 
 }
 
-void precondition_ilu(double x[],double a[][5],double y[],double b[],int N){
+void precondition_ilu(double a[][5],double x[],double y[],double b[],int N){
     // forward solve
     forward_solve(a,y,b,N);
     
     //backward solve
-    backward_solve(a,y,b,N);
+    backward_solve(a,x,y,N);
 
 }

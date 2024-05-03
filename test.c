@@ -86,8 +86,27 @@ void test_lapl(){
     
 }
 
+void test_fwbw_solve(){
+    int N=3;
+    double a[9][5];
+    lapl_matrix(a,N);
+
+    double x[9];
+    double y[9];
+    double b[9] = {1,1,1,0,0,0,1,1,1};
+
+    forward_solve(a,y,b,N);
+    backward_solve(a,x,y,N);
+
+    print_1dim(N*N,x,"x_fwbw solved");
+
+
+}
+
 int main(int argc, char **argv){
     //test_axpby();    
     //test_ilu();
-    test_lapl();
+    //test_lapl();
+    test_fwbw_solve();
+
 }
