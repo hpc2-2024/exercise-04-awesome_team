@@ -11,31 +11,6 @@ double fun(double x, double y){
     return sin(y*M_PI)*sin(x*M_PI)*2.0*M_PI*M_PI;
 }
 
-// axpy calculations with scalar y
-void axpy_scalar_y(double solution[], double a, double x[], double y, int N) {
-    #pragma omp parallel for
-    for (int i = 0; i < N; i++) {
-        solution[i] = a * x[i] + ((y == 0) ? 0 : y);
-    }
-}
-
-// axpy calculations with vector y
-void axpy_vector_y(double solution[], double a, double x[], double y[], int N) {
-    #pragma omp parallel for
-    for (int i = 0; i < N; i++) {
-        solution[i] = a * x[i] + y[i];
-    }
-}
-
-// overloaded axpy function
-void axpy(double solution[], double a, double x[], double y[], int N) {
-    if (y == NULL) { // If y is NULL, treat it as a scalar
-        axpy_scalar_y(solution, a, x, 0, N);
-    } else { // Otherwise, treat y as a vector
-        axpy_vector_y(solution, a, x, y, N);
-    }
-}
-
 /*! Calculating the dot (scalar) product of 2 vectors */
 double dot(double v[], double w[], int size) {
     double sum = 0;
@@ -146,10 +121,8 @@ int main(int argc, char** argv){
         //update p
         new_r_dot = dot(r,r,N2);
         beta = new_r_dot/old_r_dot;
-        #pragma omp parallel for
-        for (int i=0;i<(N+2)*(N+2);i++){
-            p[i]=-r[i]+beta*p[i];
-        }
+        axpby(p,-1,r,beta,p,(N+2)*(N+2));
+
         old_r_dot = new_r_dot;
 
     } while (sqrt(new_r_dot)/err0 >= epsilon);
