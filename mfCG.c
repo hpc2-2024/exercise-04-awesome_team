@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
+#include "axpby.h"
 
 /*! The function f of the exercise sheet*/
 double fun(double x, double y){
