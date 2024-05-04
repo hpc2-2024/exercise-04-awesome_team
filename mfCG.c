@@ -6,6 +6,7 @@
 #include <string.h>
 #include "utils.h"
 #include "axpby.h"
+#include "ilu.h"
 
 /*! The function f of the exercise sheet*/
 double fun(double x, double y){
@@ -22,11 +23,9 @@ void mfMult(int N, double r[], double y[], double h){
     }
 }
 
-void precondition_ilu(double x[],double a[][5],int N){
-    // forward solve
-    
-    //backward solve
-
+void apply_precon(double a[][5],double r[],double temp[],double z[],int N){
+    forward_solve(a,temp,r,N);
+    backward_solve(a,z,temp,N);
 }
 
 int main(int argc, char** argv){
@@ -46,17 +45,19 @@ int main(int argc, char** argv){
     double alpha = 0;
     double beta=0;
     double err0, errk;
-    double *x,*p,*r,*b,*m, *z;
+    double *x,*p,*r,*b,*m, *z,*temp;
     x=(double *)malloc((N+2)*(N+2)*sizeof(double));
     z=(double *)malloc((N+2)*(N+2)*sizeof(double));
     p=(double *)malloc((N+2)*(N+2)*sizeof(double));
     r=(double *)malloc((N+2)*(N+2)*sizeof(double));
     b=(double *)malloc((N+2)*(N+2)*sizeof(double));
     m=(double *)malloc((N+2)*(N+2)*sizeof(double));
-    
+    temp=(double *)malloc((N+2)*(N+2)*sizeof(double));
+
     // Creation of matrix a
     double a[5][N*N];
     lapl_matrix(a,N);
+    ilu(a,N,0.001,10000);
 
     // fill ghost layer with zeros (and everything else also 0)
     for (int i = 0;i<N+2;i++) {
@@ -83,7 +84,7 @@ int main(int argc, char** argv){
     axpy(r,-1,b,r,(N+2)*(N+2)); // r = Ax -b (together with last line)
     if (preconditioner == 1) {
         //precondition z = M^-1r
-        z=r;
+        apply_precon(a,r,temp,z,N);
     }
     else {
         z = r; // no preconditioning of the residuum
@@ -108,6 +109,7 @@ int main(int argc, char** argv){
 
         if (preconditioner==1) {
             // precondition r: z = Mr
+            apply_precon(a,r,temp,z,N);
         }
 
         //update p

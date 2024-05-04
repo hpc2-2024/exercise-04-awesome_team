@@ -33,7 +33,7 @@ void lapl_matrix(double a[][5], int N){
 }
 
 /*!iterative ilu for laplace matrix*/
-void ilu(double l[][2],double u[], int N,double epsilon,int max_it){
+void ilu(double a[][5], int N,double epsilon,int max_it){
     int iteration_count = 0;
     while (iteration_count < max_it){
         iteration_count += 1;
@@ -41,13 +41,13 @@ void ilu(double l[][2],double u[], int N,double epsilon,int max_it){
         #pragma omp parallel for
         for (int i = 0;i<N*N;i++){
             if (i-N >= 0){
-                l[i][0]=-1/u[i-N];
+                a[i][0]=-1/a[i-N][2];
             }
             // we have to skip some li's on the second diagonal
             if (i%N>0) {
-                l[i][1]=-1/u[i-1];
+                a[i][1]=-1/a[i-1][2];
             }
-            u[i]=4+l[i][0]+l[i][1];
+            a[i][2]=4+a[i][0]+a[i][1];
         }
 
     }
