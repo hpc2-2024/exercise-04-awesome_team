@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 #include "utils.h"
 #include "axpby.h"
 #include "ilu.h"
@@ -11,6 +12,10 @@
 /*! The function f of the exercise sheet*/
 double fun(double x, double y){
     return sin(y*M_PI)*sin(x*M_PI)*2.0*M_PI*M_PI;
+}
+
+double fun_solution(double x, double y){
+    return sin(x*M_PI)*sin(y*M_PI);
 }
 
 /*! Implementation of a matrix free multiplication with 5-star stencil*/
@@ -70,10 +75,16 @@ int main(int argc, char** argv){
         }
 
     }
+
+    int seed = 123456;
     // inner points of x_0,b
     for (int i = 1;i<N+1;i++) {
         for (int j = 1;j<N+1;j++){
-            x[(N+2)*i+j]=0;
+            // randomly initialize x with values in (0,1)
+            srand(seed + i);
+            double r = (double)rand() / (double)RAND_MAX;
+            x[(N+2)*i+j]=r;
+
             b[(N+2)*i+j]=fun(i*h,j*h);
         }
 
@@ -132,6 +143,17 @@ int main(int argc, char** argv){
     vec_print(N,x,"vector x");
     printf("Number of iterations: %d\n",number_of_iterations);
 
+    // Compute the relative absolute difference 
+    double abs_diff = 0.0;
+    double abs_sol = 0.0;
+    for (int i = 1;i<N+1;i++) {
+        for (int j = 1;j<N+1;j++){
+            double x_sol = fun_solution(i*h,j*h);
+            abs_diff += fabs(x[(N+2)*i+j] - x_sol);
+            abs_sol += x_sol;
+        }
+    }
+    printf("Relative absolute difference between exact and approx. solution: %f%%\n", 100.0 * abs_diff / abs_sol);
 
     // free allocated memory
     free(x);
