@@ -23,7 +23,7 @@ void mfMult(int N, double r[], double y[], double h){
     for (int i=1;i<N+1;i++){
         for (int j=1;j<N+1;j++){
             y[(N+2)*i+j]=4*r[(N+2)*i+j]-r[(N+2)*(i+1)+j] -r[(N+2)*i+j-1]-r[(N+2)*(i-1)+j]-r[(N+2)*i+j+1];
-            y[(N+2)*i+j]=1.0/(h*h)*y[(N+2)*i+j];
+            //y[(N+2)*i+j]=1.0/(h*h)*y[(N+2)*i+j]; // TB: it is better to shift the h on the rhs, so you do not have a matirx that scale with h
         }
     }
 }
@@ -31,20 +31,23 @@ void mfMult(int N, double r[], double y[], double h){
 void apply_precon(double a[][5],double r[],double temp[],double z[],int N){
     forward_solve(a,temp,r,N);
     backward_solve(a,z,temp,N);
+
+    // inv_diag(z,r,N); TB: if you want you can try the simplest preconditioner (inverse of diagonal, can be useful in debug)
 }
 
 int main(int argc, char** argv){
     int preconditioner=0;
     int number_of_iterations = 0;
+    int it_Max = 1000; // TB: add a maximum for the cg iterations
     // if you want to use a precondtioner first argument 1
     if (argc>1){
         preconditioner=atoi(argv[1]);
     }
     printf("Preconditioner: %d \n",preconditioner);
     // initilize variables
-    int N = 6; // N^2 is the number of inner points in our lattice
+    int N = 50; // N^2 is the number of inner points in our lattice
     int N2 = (N+2)*(N+2);
-    double epsilon = 0.000001;
+    double epsilon = 1e-3;
     double h = 1.0/(N+1);
     // init x0
     double alpha = 0;
@@ -60,9 +63,11 @@ int main(int argc, char** argv){
     temp=(double *)malloc((N+2)*(N+2)*sizeof(double));
 
     // Creation of matrix a
-    double a[5][N*N];
+    double a[N*N][5];
     lapl_matrix(a,N);
-    ilu(a,N,0.001,10000);
+    ilu(a,N,0.001,100);
+
+    //print_2dim(N, a,"mat ilu0");
 
     // fill ghost layer with zeros (and everything else also 0)
     for (int i = 0;i<N+2;i++) {
@@ -85,7 +90,7 @@ int main(int argc, char** argv){
             double r = (double)rand() / (double)RAND_MAX;
             x[(N+2)*i+j]=r;
 
-            b[(N+2)*i+j]=fun(i*h,j*h);
+            b[(N+2)*i+j]=fun(i*h,j*h)*h*h; // TB: it is better to shift the h on the rhs, so you do not have a matirx that scale with h
         }
 
     }
@@ -122,25 +127,28 @@ int main(int argc, char** argv){
             // precondition r: z = Mr
             apply_precon(a,r,temp,z,N);
         }
+        else {      
+            z = r; 
+        }           
 
         //update p
-        new_r_dot = dot(r,r,N2);
+        new_r_dot = dot(r,z,N2);    // TB :need dot(r,z,N2) instaed of dot(r,r,N2)! 
         beta = new_r_dot/old_r_dot;
-        axpby(p,-1,r,beta,p,(N+2)*(N+2));
+        axpby(p,-1,z,beta,p,(N+2)*(N+2));
 
         old_r_dot = new_r_dot;
 
         //break criteria
         if (preconditioner==0){
-            errk=sqrt(new_r_dot);
+           errk=sqrt(new_r_dot);
         }
         else {
             errk=sqrt(dot(z,z,N2));
         }
+        printf("residual it %d: %f \n",number_of_iterations,errk); // TB: sometimes printing the residual is useful for the debug, you can monitor the convergence (can be commented)
+    } while (errk >= epsilon && number_of_iterations <= it_Max);   // TB: Better add a maximum number for the cg iteraions 
 
-    } while (errk/err0 >= epsilon);
-
-    vec_print(N,x,"vector x");
+    //vec_print(N,x,"vector x"); // TB: I commented this print, use it only when you need it 
     printf("Number of iterations: %d\n",number_of_iterations);
 
     // Compute the relative absolute difference 

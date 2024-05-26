@@ -62,7 +62,7 @@ int conv_idx(int i, int j, int N){
 void forward_solve(double a[][5],double y[], double b[],int N){
     for (int i=1;i<N+1;i++){
         for (int j=1;j<N+1;j++){
-            y[i*(N+2)+j]=b[i*(N+2)+j]-y[(i-1)*(N+2)+j]*a[(i-1)*N+j-1][0]-y[i*(N+2)+j-1]*a[conv_idx(i,j,N)][1];
+            y[i*(N+2)+j]=b[i*(N+2)+j]-y[(i-1)*(N+2)+j]*a[conv_idx(i,j,N)][0]-y[i*(N+2)+j-1]*a[conv_idx(i,j,N)][1];
         }
     }
 }
@@ -71,7 +71,20 @@ void forward_solve(double a[][5],double y[], double b[],int N){
 void backward_solve(double a[][5],double x[],double y[],int N){
     for (int i=N;i>0;i--){
         for (int j=N;j>0;j--){
-            x[i*(N+2)+j]=(y[i*(N+2)+j]-a[conv_idx(i,j,N)][3]*x[i*(N+2)+j]-a[conv_idx(i,j,N)][4]*x[(i+1)*(N+2)+j])/a[conv_idx(i,j,N)][2];
+                      x[i*(N+2)+j]=(y[i*(N+2)+j]-a[conv_idx(i,j,N)][3]*x[i*(N+2)+j+1]-a[conv_idx(i,j,N)][4]*x[(i+1)*(N+2)+j])/a[conv_idx(i,j,N)][2];
+// TB: previously was x[i*(N+2)+j]=(y[i*(N+2)+j]-a[conv_idx(i,j,N)][3]*x[i*(N+2)+j]-a[conv_idx(i,j,N)][4]*x[(i+1)*(N+2)+j])/a[conv_idx(i,j,N)][2]; there was just and index wrong
+        }
+    }
+}
+
+/*
+    TB: I added this very simple preconditioner that is nothing else than the inverse of the diagonal.
+    You can use it when you have to debug the code, it can help in detecting where are eventually errors.
+*/
+void inv_diag(double y[], double b[], int N){
+    for (int i=1;i<N+1;i++){
+        for (int j=1;j<N+1;j++){
+            y[i*(N+2)+j]=b[i*(N+2)+j]/(4);
         }
     }
 }
