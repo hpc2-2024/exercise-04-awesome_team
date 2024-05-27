@@ -1,4 +1,27 @@
 #include <stdio.h>
+#include <math.h>
+
+double norm_L1(double *x, double *y, int N){
+    double norm = 0;
+    for(int i = 0; i<N; i++){
+        for(int j = 0; j<N; j++){
+            norm += fabs(x[i * N + j] - y[i * N + j]);
+        }
+    }
+
+    return norm / (N*N);
+}
+
+double norm_L2(double *x, double *y, int N){
+    double norm = 0;
+    for(int i = 0; i<N; i++){
+        for(int j = 0; j<N; j++){
+            norm += (x[i * N + j] - y[i * N + j]) * (x[i * N + j] - y[i * N + j]);
+        }
+    }
+
+    return sqrt(norm) / (N*N);
+}
 
 /*! Calculating the dot (scalar) product of 2 vectors */
 double dot(double v[], double w[], int size) {

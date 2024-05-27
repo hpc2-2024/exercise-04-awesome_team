@@ -34,6 +34,7 @@ void apply_precon(double a[][5],double r[],double temp[],double z[],int N){
 }
 
 int main(int argc, char** argv){
+
     int preconditioner=0;
     int number_of_iterations = 0;
     // if you want to use a precondtioner first argument 1
@@ -42,7 +43,7 @@ int main(int argc, char** argv){
     }
     printf("Preconditioner: %d \n",preconditioner);
     // initilize variables
-    int N = 6; // N^2 is the number of inner points in our lattice
+    int N = 10; // N^2 is the number of inner points in our lattice
     int N2 = (N+2)*(N+2);
     double epsilon = 0.000001;
     double h = 1.0/(N+1);
@@ -62,7 +63,7 @@ int main(int argc, char** argv){
     // Creation of matrix a
     double a[5][N*N];
     lapl_matrix(a,N);
-    ilu(a,N,0.001,10000);
+    ilu(a, N, 1, 10000);
 
     // fill ghost layer with zeros (and everything else also 0)
     for (int i = 0;i<N+2;i++) {
@@ -102,7 +103,7 @@ int main(int argc, char** argv){
     }
     axpy(p,-1,z,0,(N+2)*(N+2)); // p = -r (first conjugated gradient direction)
 
-    err0 = sqrt(dot(z,z,N2)); // for break condition
+    err0 = sqrt(dot(z,z,N2)); // for break conditionn
 
     double old_r_dot, new_r_dot;
     old_r_dot = dot(r,z,N2); // dot product for loop

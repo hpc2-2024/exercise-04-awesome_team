@@ -1,3 +1,4 @@
+
 void lapl_matrix(double a[][5], int N){
 
     for (int i=0;i<N*N;i++) {
@@ -32,12 +33,41 @@ void lapl_matrix(double a[][5], int N){
     }
 }
 
-/*!iterative ilu for laplace matrix*/
-void ilu(double a[][5], int N,double epsilon,int max_it){
-    int iteration_count = 0;
-    while (iteration_count < max_it){
-        iteration_count += 1;
+// /*!iterative ilu for laplace matrix*/
+// void ilu(double a[][5], int N,double epsilon,int max_it){
+//     int iteration_count = 0;
+//     while (iteration_count < max_it){
+//         iteration_count += 1;
         
+//         #pragma omp parallel for
+//         for (int i = 0;i<N*N;i++){
+//             if (i-N >= 0){
+//                 a[i][0]=-1/a[i-N][2];
+//             }
+//             // we have to skip some li's on the second diagonal
+//             if (i%N>0) {
+//                 a[i][1]=-1/a[i-1][2];
+//             }
+//             a[i][2]=4+a[i][0]+a[i][1];
+//         }
+
+//     }
+// }
+
+void ilu(double a[][5], int N,double epsilon,int max_it){
+
+    double *a_temp;
+    a_temp = malloc(5 * N * sizeof(*a_temp));
+    int iteration_count = 0;
+    double diff = epsilon + 1 ;
+
+    while (diff >=  epsilon){
+        if(iteration_count > max_it){
+            break;
+        }
+        iteration_count += 1;
+        memcpy(a_temp, a, 5 * N  * sizeof(*a_temp));
+
         #pragma omp parallel for
         for (int i = 0;i<N*N;i++){
             if (i-N >= 0){
@@ -49,9 +79,13 @@ void ilu(double a[][5], int N,double epsilon,int max_it){
             }
             a[i][2]=4+a[i][0]+a[i][1];
         }
+        
+        diff = norm_L1(a, a_temp, N);
+        int i=0;
 
     }
 }
+
 
 //double_index_with_ghostlayer_to_single_index
 int conv_idx(int i, int j, int N){
